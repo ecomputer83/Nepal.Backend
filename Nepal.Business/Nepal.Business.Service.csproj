@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nepal.Abstraction\Nepal.Abstraction.csproj" />
+    <ProjectReference Include="..\Nepal.Data.Abstration\Nepal.Data.Abstration.csproj" />
+    <ProjectReference Include="..\Nepal.Data.Service\Nepal.Data.Service.csproj" />
+    <ProjectReference Include="..\Nepal.EF.DB\Nepal.EF.DB.csproj" />
+  </ItemGroup>
+
+</Project>
