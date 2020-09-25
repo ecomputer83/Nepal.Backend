@@ -19,7 +19,7 @@ namespace Nepal.Data.Service
 
         public async Task<OrderCredit> GetByOrderId(int Id)
         {
-            return await _context.OrderCredits.FirstOrDefaultAsync(o => o.OrderId == Id);
+            return await _context.OrderCredits.Include("Credit").FirstOrDefaultAsync(o => o.OrderId == Id);
         }
     }
 }

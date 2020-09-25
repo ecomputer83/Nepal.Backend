@@ -61,7 +61,7 @@ namespace Nepal.Business.Service
             var oCredit = await _orderCreditRepository.GetByOrderId(Id);
             if (oCredit != null)
             {
-                var _credit = await _creditRepository.Get(oCredit.CreditId);
+                var _credit = oCredit.Credit;
                 _order.Credit = _mapper.Map<CreditViewModel>(_credit);
             }
 
