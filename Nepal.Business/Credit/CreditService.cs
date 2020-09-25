@@ -20,13 +20,13 @@ namespace Nepal.Business.Service
             _creditRepository = creditRepository;
             _mapper = mapper;
         }
-        public async Task Create(CreditModel model)
+        public async Task<int> Create(CreditModel model)
         {
             var credit = _mapper.Map<Credit>(model);
             credit.Status = 1;
             credit.CreatedBy = "System";
             credit.CreatedOn = DateTime.Now;
-            await _creditRepository.Create(credit, model.OrderId);
+            return await _creditRepository.Create(credit, model.OrderId);
         }
 
         public async Task<CreditViewModel> GetCredit(int Id)
@@ -39,6 +39,17 @@ namespace Nepal.Business.Service
         {
             var credits = await _creditRepository.GetAll();
             return _mapper.Map<List<CreditViewModel>>(credits);
+        }
+        public async Task<List<OrderCreditModel>> GetBankDeposits()
+        {
+            var credits = await _creditRepository.GetBankDeposits();
+            return _mapper.Map<List<OrderCreditModel>>(credits);
+        }
+
+        public async Task<List<OrderCreditModel>> GetIPMANCredits()
+        {
+            var credits = await _creditRepository.GetIPMANCredits();
+            return _mapper.Map<List<OrderCreditModel>>(credits);
         }
 
         public async Task UpdateCredit(CreditModel model, int Id)

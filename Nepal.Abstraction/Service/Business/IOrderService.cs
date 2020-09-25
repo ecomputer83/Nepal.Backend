@@ -10,6 +10,7 @@ namespace Nepal.Abstraction.Service.Business
     {
         Task<OrderViewModel> GetOrder(int Id);
         Task<List<OrderViewModel>> GetOrders(string UserId);
+        Task<List<OrderViewModel>> GetOrders();
         Task<int> AddOrder(OrderModel model, string UserId);
         Task UpdateOrder(OrderModel model, int Id);
         Task DeleteOrder(int Id);

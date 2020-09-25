@@ -5,8 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Azure.Storage.Blobs;
 
 namespace Nepal.Business.Service
 {
@@ -31,29 +30,15 @@ namespace Nepal.Business.Service
             blob.FileName = $"{rndFolderName}{DateTime.Now.ToString("yyyyMMddHHmmss")}.{ext}";
 
             string storageConnection = _configuration.GetConnectionString("BlobStorageConnectionString");
-            CloudStorageAccount cloudStorageAccount = CloudStorageAccount.Parse(storageConnection);
-            CloudBlobClient cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
-            CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(fileShare);
-
-            //create a container if it is not already exists
-
-            if (cloudBlobContainer.CreateIfNotExistsAsync().Result)
-            {
-
-                await cloudBlobContainer.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-            }
-
             try
             {
-                CloudBlockBlob cloudBlockBlob = cloudBlobContainer.GetBlockBlobReference(blob.FileName);
-                cloudBlockBlob.Properties.ContentType = blob.ContentType;
+                BlobContainerClient container = new BlobContainerClient(storageConnection, fileShare);
+                container.Create();
 
-                await cloudBlockBlob.UploadFromStreamAsync(blob.FileStream);
-                
-
-                result = cloudBlockBlob.Uri.AbsoluteUri;
-
+                // Get a reference to a blob named "sample-file" in a container named "sample-container"
+                BlobClient _blob = container.GetBlobClient(blob.FileName);
+                await _blob.UploadAsync(blob.FileStream);
+                result = _blob.Uri.AbsoluteUri;
             }
             catch (Exception ex)
             {

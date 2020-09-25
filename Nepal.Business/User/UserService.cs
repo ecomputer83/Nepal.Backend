@@ -28,6 +28,19 @@ namespace Nepal.Business.Service
             _roleManager = roleManager;
         }
 
+        public async Task AddCreditLimit(string Id, long limit)
+        {
+            var _user = await _userManager.FindByIdAsync(Id);
+            _user.CreditLimit = limit.ToString();
+            _user.CreditBalance = limit.ToString();
+
+            var result = await _userManager.UpdateAsync(_user);
+            if (!result.Succeeded)
+            {
+                throw new Exception(result.Errors.Select(c => c.Description).Aggregate((a, b) => a + ", " + b));
+            }
+        }
+
         public async Task AddRole(string roleName)
         {
             await _roleManager.CreateAsync(new IdentityRole { Name = roleName });
@@ -127,7 +140,12 @@ namespace Nepal.Business.Service
 
         public Task<IEnumerable<UserModel>> GetUsers(string userId)
         {
-            var users = _userManager.Users;
+            var users = _userManager.Users.Where(c=>!string.IsNullOrEmpty(c.BusinessName));
+            return Task.FromResult(_mapper.Map<IEnumerable<UserModel>>(users));
+        }
+        public Task<IEnumerable<UserModel>> GetAdminUsers(string userId)
+        {
+            var users = _userManager.Users.Where(c => string.IsNullOrEmpty(c.BusinessName));
             return Task.FromResult(_mapper.Map<IEnumerable<UserModel>>(users));
         }
 

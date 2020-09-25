@@ -92,6 +92,45 @@ namespace Nepal.Backend.Controllers
                 return CreateApiException(ex);
             }
         }
+        [Authorize(Roles = "Administrator")]
+        [HttpGet]
+        [Route("AllAdminUsers")]
+        public async Task<IActionResult> AllAdminUsers()
+        {
+            try
+            {
+                var userId = HttpContext.User.Identity.Name;
+
+                var users = await _userService.GetAdminUsers(userId);
+
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpGet]
+        [Route("AddCreditLimit/{id}/{limit}")]
+        public async Task<IActionResult> AddCreditLimit(string id, long limit)
+        {
+            try
+            {
+                var userId = HttpContext.User.Identity.Name;
+
+                await _userService.AddCreditLimit(id, limit);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
 
 
         [Authorize]

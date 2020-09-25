@@ -20,6 +20,7 @@ namespace Nepal.Business.Service.ObjectMapper
                 .ForMember(d => d.DepotName, opt => opt.MapFrom(s => s.Depot.Name))
                 .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product.Abbrev));
             CreateMap<Credit, CreditViewModel>();
+            CreateMap<OrderCredit, OrderCreditModel>();
             CreateMap<CreditModel, Credit>();
             CreateMap<Program, ProgramViewModel>()
                 .ForMember(d => d.OrderNumber, opt => opt.MapFrom(s => s.Order.OrderNo));
@@ -31,7 +32,9 @@ namespace Nepal.Business.Service.ObjectMapper
             CreateMap<User, UserModel>()
                 .ForMember(d => d.IsLockout, opt => opt.MapFrom(s => s.LockoutEnabled)).ReverseMap();
             CreateMap<Product, ProductModel>()
-                .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Abbrev)).ReverseMap();
+                .ForMember(d => d.Name, opt => opt.MapFrom(s => s.Abbrev))
+                .ForMember(d => d.Unit, opt => opt.MapFrom(s => s.Type))
+                .ForMember(d => d.Product, opt => opt.MapFrom(s => s.Abbrev)).ReverseMap();
 
         }
     }

@@ -5,6 +5,7 @@ using Nepal.Data.Service;
 using Nepal.EF.DB.DataObject;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -69,6 +70,13 @@ namespace Nepal.Business.Service
         public async Task<List<OrderViewModel>> GetOrders(string UserId)
         {
             var orders = await _orderRepository.GetOrders(UserId);
+            return _mapper.Map<List<OrderViewModel>>(orders);
+        }
+
+        public async Task<List<OrderViewModel>> GetOrders()
+        {
+            var orders = await _orderRepository.GetAll();
+            orders = orders.OrderByDescending(c => c.OrderDate).ThenBy(o=>o.Status).ToList();
             return _mapper.Map<List<OrderViewModel>>(orders);
         }
 

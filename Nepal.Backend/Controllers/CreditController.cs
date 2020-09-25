@@ -41,6 +41,42 @@ namespace Nepal.Backend.Controllers
             }
         }
 
+        [Authorize(Roles = "Administrator")]
+        [HttpGet]
+        [Route("BankDeposits")]
+        public async Task<IActionResult> BankDeposits()
+        {
+            try
+            {
+                var userId = HttpContext.User.Identity.Name;
+                var credits = await _creditService.GetBankDeposits();
+                return Ok(credits);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpGet]
+        [Route("iPMANCredits")]
+        public async Task<IActionResult> iPMANCredits()
+        {
+            try
+            {
+                var userId = HttpContext.User.Identity.Name;
+                var credits = await _creditService.GetIPMANCredits();
+                return Ok(credits);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(typeof(IEnumerable<string>), 400)]
         public async Task<IActionResult> Post([FromBody] CreditModel model)
@@ -49,8 +85,8 @@ namespace Nepal.Backend.Controllers
                 return BadRequest(ModelState.Values.Select(x => x.Errors.FirstOrDefault().ErrorMessage));
             try
             {
-                await _creditService.Create(model);
-                return Ok();
+                var creditId = await _creditService.Create(model);
+                return Ok(creditId);
             }
             catch (Exception ex)
             {

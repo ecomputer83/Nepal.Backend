@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.AzureAppServices;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Nepal.Backend.Settings;
@@ -37,6 +38,7 @@ namespace Nepal.Backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<AzureFileLoggerOptions>(Configuration.GetSection("AzureLogging"));
             services.SetupRegistration(false, false);
             services.AddControllersWithViews();
             string connection = Configuration.GetConnectionString("DefaultConnection");

@@ -25,6 +25,8 @@ namespace Nepal.Abstraction.Service.Business
         Task<IList<string>> GetRolesAsync(UserModel user);
        Task<bool> CheckPasswordAsync(UserModel user, string Password);
         Task<IEnumerable<string>> GetRoles();
+        Task<IEnumerable<UserModel>> GetAdminUsers(string userId);
         Task AddRole(string roleName);
+        Task AddCreditLimit(string Id, long limit);
     }
 }

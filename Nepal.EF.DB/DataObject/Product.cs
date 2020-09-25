@@ -10,5 +10,6 @@ namespace Nepal.EF.DB.DataObject
         public string Name { get; set; }
         public string Abbrev { get; set; }
         public double Price { get; set; }
+        public string Type { get; set; }
     }
 }

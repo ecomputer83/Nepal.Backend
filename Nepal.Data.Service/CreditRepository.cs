@@ -3,6 +3,7 @@ using Nepal.EF.DB.Context;
 using Nepal.EF.DB.DataObject;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,14 +16,74 @@ namespace Nepal.Data.Service
         {
             _context = context;
         }
-        public async Task Create(Credit model, int Id)
+        public async Task<int> Create(Credit model, int Id)
         {
             var credit = await this.Add(model);
             _context.OrderCredits.Add(new OrderCredit { CreditId = credit.Id, OrderId = Id });
             await _context.SaveChangesAsync();
+            return credit.Id;
         }
-
-        public async Task ApproveCredit(int creditId)
+        public async Task<List<OrderCredit>> GetBankDeposits()
+        {
+            return await (from oc in _context.OrderCredits
+                          join op in (from o in _context.Orders
+                                      join u in _context.Users on o.UserId equals u.Id
+                                      join p in _context.Products on o.ProductId equals p.Id
+                                      join d in _context.Depots on o.DepotId equals d.Id
+                                      select new Order
+                                      {
+                                          Id = o.Id,
+                                          OrderDate = o.OrderDate,
+                                          OrderNo = o.OrderNo,
+                                          Status = o.Status,
+                                          Depot = d,
+                                          Product = p,
+                                          User = u
+                                      })
+                                          on oc.OrderId equals op.Id
+                          join c in _context.Credits on oc.CreditId equals c.Id
+                          where c.Status == 0 && c.Type == 3
+                          orderby c.CreatedOn
+                          select new OrderCredit
+                          {
+                              Id = oc.Id,
+                              CreditId = oc.CreditId,
+                              OrderId = oc.OrderId,
+                              Credit = c,
+                              Order = op
+                          }).ToListAsync();
+        }
+        public async Task<List<OrderCredit>> GetIPMANCredits()
+        {
+            return await (from oc in _context.OrderCredits
+                          join op in (from o in _context.Orders
+                                      join u in _context.Users on o.UserId equals u.Id
+                                      join p in _context.Products on o.ProductId equals p.Id
+                                      join d in _context.Depots on o.DepotId equals d.Id
+                                      select new Order
+                                      {
+                                          Id = o.Id,
+                                          OrderDate = o.OrderDate,
+                                          OrderNo = o.OrderNo,
+                                          Status = o.Status,
+                                          Depot = d,
+                                          Product = p,
+                                          User = u
+                                      })
+                                          on oc.OrderId equals op.Id
+                          join c in _context.Credits on oc.CreditId equals c.Id
+                          where c.Status == 0 && c.Type == 2
+                          orderby c.CreatedOn
+                          select new OrderCredit
+                          {
+                              Id = oc.Id,
+                              CreditId = oc.CreditId,
+                              OrderId = oc.OrderId,
+                              Credit = c,
+                              Order = op
+                          }).ToListAsync();
+        }
+            public async Task ApproveCredit(int creditId)
         {
             var credit = await this.Get(creditId);
             credit.Status = 1;
