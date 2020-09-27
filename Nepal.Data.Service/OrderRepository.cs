@@ -34,7 +34,7 @@ namespace Nepal.Data.Service
                 .Include("Product")
                 .Include("Depot")
                 //.Include("Programs")
-                .Where(c => c.UserId == UserId)
+                .Where(c => c.UserId == UserId && c.Status != 2)
                 .OrderByDescending(o=>o.OrderDate).ToListAsync();
 
             return order;
