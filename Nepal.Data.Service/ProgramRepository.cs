@@ -34,7 +34,7 @@ namespace Nepal.Data.Service
         }
         public async Task<List<Program>> GetPrograms(string userId)
         {
-            return await _context.Programs.Include("Order").Where(p => p.Order.UserId == userId).ToListAsync();
+            return await _context.Programs.Include("Order").Where(p => p.Order.UserId == userId && p.Status == 1).ToListAsync();
         }
     }
 }

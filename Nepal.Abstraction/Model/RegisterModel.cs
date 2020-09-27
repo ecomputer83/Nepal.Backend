@@ -28,6 +28,20 @@ namespace Nepal.Abstraction.Model
         public string ConfirmPassword { get; set; }
     }
 
+    public class UserManualModel
+    {
+        public string IPMANCode { get; set; }
+        public string BusinessName { get; set; }
+        public string RCNumber { get; set; }
+        public string Address { get; set; }
+        public string ContactName { get; set; }
+        public string PhoneNumber { get; set; }
+        [Required]
+        public string Email { get; set; }
+        public bool isIPMAN { get; set; }
+
+    }
+
     public class DeviceInfoModel
     {
         public string DeviceId { get; set; }

@@ -24,7 +24,9 @@ namespace Nepal.Business.Service.ObjectMapper
             CreateMap<CreditModel, Credit>();
             CreateMap<Program, ProgramViewModel>()
                 .ForMember(d => d.OrderNumber, opt => opt.MapFrom(s => s.Order.OrderNo));
+            CreateMap<ProgramModel, Program>();
             CreateMap<RegisterModel, User>().ReverseMap();
+            CreateMap<UserManualModel, RegisterModel> ().ReverseMap();
             CreateMap<AdminModel, RegisterModel>();
             CreateMap<Depot, GenericModel>().ReverseMap();
             CreateMap<Marketer, MarketerModel>().ReverseMap();

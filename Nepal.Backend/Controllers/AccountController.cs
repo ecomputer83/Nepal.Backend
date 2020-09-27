@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc;
 using Nepal.Abstraction.Model;
 using Nepal.Abstraction.Service.Business;
 using Nepal.Backend.Helpers;
@@ -198,7 +199,33 @@ namespace Nepal.Backend.Controllers
             }
         }
 
-        
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        [ProducesResponseType(typeof(IEnumerable<string>), 400)]
+        [Route("addUser")]
+        public async Task<IActionResult> AddUser([FromBody]UserManualModel model)
+        {
+            try
+            {
+
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState.Values.Select(x => x.Errors.FirstOrDefault().ErrorMessage));
+                var user = _mapper.Map<RegisterModel>(model);
+                user.Email = model.Email;
+                user.Password = "password";
+                user.ConfirmPassword = "password";
+                await _userService.CreateUserAsync(user, null);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
+
+        [Authorize(Roles = "Administrator")]
         [HttpPost]
         [ProducesResponseType(typeof(IEnumerable<string>), 400)]
         [Route("addAdmn")]
@@ -208,8 +235,11 @@ namespace Nepal.Backend.Controllers
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState.Values.Select(x => x.Errors.FirstOrDefault().ErrorMessage));
-
+                
                 var _model = _mapper.Map<RegisterModel>(model);
+                _model.Email =
+                _model.Password = "password";
+                _model.ConfirmPassword = "password";
                 await _userService.CreateUserAsync(_model, model.roleNames);
 
                 return Ok();
@@ -306,7 +336,7 @@ namespace Nepal.Backend.Controllers
             }
         }
 
-        //[Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "Administrator")]
         [HttpPost]
         [ProducesResponseType(200)]
         [ProducesResponseType(typeof(IEnumerable<string>), 400)]
@@ -372,6 +402,25 @@ namespace Nepal.Backend.Controllers
                 return CreateApiException(ex);
             }
         }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpDelete]
+        [Route("removeuser/{Id}")]
+        public async Task<IActionResult> RemoveUser(string Id)
+        {
+            try
+            {
+                await _userService.RemoveUser(Id);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
+
         private async Task<JwtSecurityToken> CreateJwtToken(UserModel user)
         {
             var userClaims = await _userService.GetClaimsAsync(user).ConfigureAwait(false);

@@ -33,6 +33,8 @@ namespace Nepal.Business.Service
             try
             {
                 BlobContainerClient container = new BlobContainerClient(storageConnection, fileShare);
+                
+                if(!container.Exists())
                 container.Create();
 
                 // Get a reference to a blob named "sample-file" in a container named "sample-container"
@@ -43,7 +45,7 @@ namespace Nepal.Business.Service
             catch (Exception ex)
             {
                 //Log.Error(ex);
-                throw new Exception("Unable to upload file to the cloud, contact the administrator");
+                throw new Exception(ex.Message, ex);
             }
 
             return result;

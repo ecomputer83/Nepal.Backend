@@ -22,9 +22,9 @@ namespace Nepal.Data.Service
             var order = await _context.Orders
                 .Include("Product")
                 .Include("Depot")
-                .Include("Programs")
                 .FirstOrDefaultAsync(c => c.Id == OrderId);
 
+            order.Programs = await _context.Programs.Where(p => p.OrderId == OrderId).ToListAsync();
             return order;
         }
 
@@ -33,9 +33,21 @@ namespace Nepal.Data.Service
             var order = await _context.Orders
                 .Include("Product")
                 .Include("Depot")
-                .Include("Programs")
+                //.Include("Programs")
                 .Where(c => c.UserId == UserId)
                 .OrderByDescending(o=>o.OrderDate).ToListAsync();
+
+            return order;
+        }
+
+        public async Task<List<Order>> GetOrders()
+        {
+            var order = await _context.Orders
+                .Include("Product")
+                .Include("Depot")
+                //.Include("Programs")
+                .Where(c => c.Status == 1)
+                .OrderByDescending(o => o.OrderDate).ToListAsync();
 
             return order;
         }
@@ -47,6 +59,14 @@ namespace Nepal.Data.Service
             await _context.SaveChangesAsync();
             return _order.Entity.Id;
         }
-        
+
+        public async Task CompleteOrder(int OrderId)
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == OrderId);
+            order.Status = 2;
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

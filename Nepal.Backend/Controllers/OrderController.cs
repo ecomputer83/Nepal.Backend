@@ -40,6 +40,22 @@ namespace Nepal.Backend.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("ActiveOrders")]
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                var orders = await _orderService.GetOrders();
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(typeof(IEnumerable<string>), 400)]
         public async Task<IActionResult> Post([FromBody] OrderModel model)
@@ -85,6 +101,21 @@ namespace Nepal.Backend.Controllers
             {
                 var order = await _orderService.GetOrder(id);
                 return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
+        [HttpGet]
+        [Route("completeorder/{id}")]
+        public async Task<IActionResult> CompleteOrder(int id)
+        {
+            try
+            {
+                await _orderService.CompleteOrder(id);
+                return Ok();
             }
             catch (Exception ex)
             {

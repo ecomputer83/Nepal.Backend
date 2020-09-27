@@ -195,5 +195,11 @@ namespace Nepal.Business.Service
             }
             return result.Succeeded;
         }
+
+        public async Task RemoveUser(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            await _userManager.DeleteAsync(user);
+        }
     }
 }

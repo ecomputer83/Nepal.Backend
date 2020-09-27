@@ -75,8 +75,7 @@ namespace Nepal.Business.Service
 
         public async Task<List<OrderViewModel>> GetOrders()
         {
-            var orders = await _orderRepository.GetAll();
-            orders = orders.OrderByDescending(c => c.OrderDate).ThenBy(o=>o.Status).ToList();
+            var orders = await _orderRepository.GetOrders();
             return _mapper.Map<List<OrderViewModel>>(orders);
         }
 
@@ -96,6 +95,11 @@ namespace Nepal.Business.Service
             int _max = 99999;
             Random _rdm = new Random();
             return _rdm.Next(_min, _max);
+        }
+
+        public async Task CompleteOrder(int orderId)
+        {
+            await _orderRepository.CompleteOrder(orderId);
         }
     }
 }

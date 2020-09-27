@@ -23,7 +23,7 @@ namespace Nepal.Business.Service
         public async Task<int> Create(CreditModel model)
         {
             var credit = _mapper.Map<Credit>(model);
-            credit.Status = 1;
+            credit.Status = 0;
             credit.CreatedBy = "System";
             credit.CreatedOn = DateTime.Now;
             return await _creditRepository.Create(credit, model.OrderId);
