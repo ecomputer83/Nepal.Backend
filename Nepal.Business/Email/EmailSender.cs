@@ -31,17 +31,19 @@ namespace Nepal.Business.Service.Email
             var body = template.TemplateBody;
             ConvertOrderCreditToBodyMessage(body, oc);
             using (var client = new SmtpClient(_email.Server, _email.Port))
-            using (var mailMessage = new MailMessage())
             {
-                if (!_email.DefaultCredentials)
+                using (var mailMessage = new MailMessage())
                 {
-                    client.UseDefaultCredentials = false;
-                    client.Credentials = new NetworkCredential(_email.UserName, _email.Password);
+                    if (!_email.DefaultCredentials)
+                    {
+                        client.UseDefaultCredentials = false;
+                        client.Credentials = new NetworkCredential(_email.UserName, _email.Password);
+                    }
+                    var cc = _email.CC;
+                    PrepareMailMessage(_email.DisplayName, template.TemplateSubject, body, _email.From, To, mailMessage, cc);
+                    client.EnableSsl = true;
+                    await client.SendMailAsync(mailMessage);
                 }
-                var cc = _email.CC;
-                PrepareMailMessage(_email.DisplayName, template.TemplateSubject, body, _email.From, To, mailMessage, cc);
-                client.EnableSsl = true;
-                await client.SendMailAsync(mailMessage);
             }
         }
         public async Task SendOrderSummaryAsync(OrderViewModel oc, string To)
@@ -50,17 +52,19 @@ namespace Nepal.Business.Service.Email
             var body = template.TemplateBody;
             ConvertOrderToBodyMessage(body, oc);
             using (var client = new SmtpClient(_email.Server, _email.Port))
-            using (var mailMessage = new MailMessage())
             {
-                if (!_email.DefaultCredentials)
+                using (var mailMessage = new MailMessage())
                 {
-                    client.UseDefaultCredentials = false;
-                    client.Credentials = new NetworkCredential(_email.UserName, _email.Password);
-                }
+                    if (!_email.DefaultCredentials)
+                    {
+                        client.UseDefaultCredentials = false;
+                        client.Credentials = new NetworkCredential(_email.UserName, _email.Password);
+                    }
 
-                PrepareMailMessage(_email.DisplayName, template.TemplateSubject, body, _email.From, To, mailMessage);
-                client.EnableSsl = true;
-                await client.SendMailAsync(mailMessage);
+                    PrepareMailMessage(_email.DisplayName, template.TemplateSubject, body, _email.From, To, mailMessage);
+                    client.EnableSsl = true;
+                    await client.SendMailAsync(mailMessage);
+                }
             }
         }
         public async Task SendAsync(string EmailDisplayName, string Subject, string Body, string From, string To)
@@ -100,17 +104,19 @@ namespace Nepal.Business.Service.Email
         public async Task SendPasswordResetAsync(string EmailAddress, string Code)
         {
             using (var client = new SmtpClient(_email.Server, _email.Port))
-            using (var mailMessage = new MailMessage())
             {
-                if (!_email.DefaultCredentials)
+                using (var mailMessage = new MailMessage())
                 {
-                    client.UseDefaultCredentials = false;
-                    client.Credentials = new NetworkCredential(_email.UserName, _email.Password);
-                }
+                    if (!_email.DefaultCredentials)
+                    {
+                        client.UseDefaultCredentials = false;
+                        client.Credentials = new NetworkCredential(_email.UserName, _email.Password);
+                    }
 
-                PrepareMailMessage(_email.DisplayName, "Reset your password", $"Please reset your password with code <b>{Code}</b>", _email.From, EmailAddress, mailMessage);
-                client.EnableSsl = true;
-                await client.SendMailAsync(mailMessage);
+                    PrepareMailMessage(_email.DisplayName, "Reset your password", $"Please reset your password with code <b>{Code}</b>", _email.From, EmailAddress, mailMessage);
+                    client.EnableSsl = true;
+                    await client.SendMailAsync(mailMessage);
+                }
             }
         }
 
