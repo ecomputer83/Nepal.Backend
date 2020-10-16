@@ -121,6 +121,7 @@ namespace Nepal.EF.DB.Context
         public virtual DbSet<OrderCredit> OrderCredits { get; set; }
         public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<Program> Programs { get; set; }
+        public virtual DbSet<SalesPrice> SalesPrices { get; set; }
         public virtual DbSet<MailMessage> MailMessage { get; set; }
         public virtual DbSet<MailMessageAddress> MailMessageAddress { get; set; }
         public virtual DbSet<MailMessageAttachment> MailMessageAttachment { get; set; }

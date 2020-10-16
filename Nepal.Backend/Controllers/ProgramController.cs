@@ -39,6 +39,22 @@ namespace Nepal.Backend.Controllers
                 return CreateApiException(ex);
             }
         }
+        [HttpGet]
+        [Route("Working")]
+        public async Task<IActionResult> WorkingPrograms()
+        {
+            try
+            {
+                var userId = HttpContext.User.Identity.Name;
+                var orders = await _programService.GetWorkingPrograms(userId);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
 
         [HttpPost]
         [ProducesResponseType(typeof(IEnumerable<string>), 400)]

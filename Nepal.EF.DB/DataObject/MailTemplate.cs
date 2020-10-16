@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Nepal.EF.DB.DataObject
 {
-    public class MailTemplate : BaseObject
+    public class MailTemplate : BaseObject, IEntity
     {
         public int Id { get; set; }
         public string TemplateCode { get; set; }

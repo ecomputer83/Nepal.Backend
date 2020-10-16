@@ -202,6 +202,9 @@ namespace Nepal.Backend.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("CreditDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -234,6 +237,12 @@ namespace Nepal.Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Group")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -612,9 +621,6 @@ namespace Nepal.Backend.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -665,6 +671,31 @@ namespace Nepal.Backend.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("Programs");
+                });
+
+            modelBuilder.Entity("Nepal.EF.DB.DataObject.SalesPrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("DepotId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<int>("Productid")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DepotId");
+
+                    b.HasIndex("Productid");
+
+                    b.ToTable("SalesPrices");
                 });
 
             modelBuilder.Entity("Nepal.EF.DB.DataObject.User", b =>
@@ -739,6 +770,9 @@ namespace Nepal.Backend.Migrations
                     b.Property<string>("UserName")
                         .HasColumnType("nvarchar(256)")
                         .HasMaxLength(256);
+
+                    b.Property<string>("UserNo")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("isIPMAN")
                         .HasColumnType("bit");
@@ -880,6 +914,21 @@ namespace Nepal.Backend.Migrations
                     b.HasOne("Nepal.EF.DB.DataObject.Order", "Order")
                         .WithMany("Programs")
                         .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Nepal.EF.DB.DataObject.SalesPrice", b =>
+                {
+                    b.HasOne("Nepal.EF.DB.DataObject.Depot", "Depot")
+                        .WithMany()
+                        .HasForeignKey("DepotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Nepal.EF.DB.DataObject.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("Productid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

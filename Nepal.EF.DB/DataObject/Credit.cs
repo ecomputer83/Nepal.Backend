@@ -11,5 +11,6 @@ namespace Nepal.EF.DB.DataObject
         public string Name { get; set; }
         public int Type { get; set; }
         public string Reference { get; set; }
+        public DateTime CreditDate { get; set; }
     }
 }

@@ -11,6 +11,7 @@ namespace Nepal.Abstraction.Service.Business
         public Task AddProgram(ProgramModel model);
         public Task<ProgramViewModel> GetProgram(int Id);
         public Task<List<ProgramViewModel>> GetPrograms(string userId);
+        public Task<List<ProgramViewModel>> GetWorkingPrograms(string userId);
         public Task<List<ProgramViewModel>> GetPrograms(int OrderId);
         public Task DeleteProgram(int Id);
         public Task UpdateProgram(ProgramModel model, int Id);

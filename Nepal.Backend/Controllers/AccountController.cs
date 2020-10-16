@@ -29,11 +29,13 @@ namespace Nepal.Backend.Controllers
         private readonly IUserService _userService;
         private readonly JwtSecurityTokenSettings _jwt;
         private readonly ILogger<AccountController> _logger;
+        private readonly IKYCClientService _kYCClientService;
         private readonly IMapper _mapper;
 
         public AccountController(
             IConfiguration configuration,
             IUserService userService,
+            IKYCClientService kYCClientService,
         IOptions<JwtSecurityTokenSettings> jwt,
             ILogger<AccountController> logger,
             IMapper mapper
@@ -42,6 +44,7 @@ namespace Nepal.Backend.Controllers
 
             this._configuration = configuration;
             this._userService = userService;
+            this._kYCClientService = kYCClientService;
             this._jwt = jwt.Value;
             this._logger = logger;
             this._mapper = mapper;
@@ -274,6 +277,8 @@ namespace Nepal.Backend.Controllers
                 {
                     HasVerifiedEmail = false
                 };
+
+
 
                 // Used as user lock
                 if (user.IsLockout)

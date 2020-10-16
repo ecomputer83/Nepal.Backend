@@ -4,6 +4,7 @@ using Nepal.EF.DB.DataObject;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -43,6 +44,40 @@ namespace Nepal.Data.Service
                                           on oc.OrderId equals op.Id
                           join c in _context.Credits on oc.CreditId equals c.Id
                           where c.Status == 0 && c.Type == 3
+                          orderby c.CreatedOn
+                          select new OrderCredit
+                          {
+                              Id = oc.Id,
+                              CreditId = oc.CreditId,
+                              OrderId = oc.OrderId,
+                              Credit = c,
+                              Order = op
+                          }).ToListAsync();
+        }
+        public async Task<List<OrderCredit>> GetCredits(string userId)
+        {
+            return await (from oc in _context.OrderCredits
+                          join op in (from o in _context.Orders
+                                      join u in _context.Users on o.UserId equals u.Id
+                                      join p in _context.Products on o.ProductId equals p.Id
+                                      join d in _context.Depots on o.DepotId equals d.Id
+                                      where u.Id == userId
+                                      select new Order
+                                      {
+                                          Id = o.Id,
+                                          Programs = (from p in _context.Programs where p.OrderId == o.Id select p).ToList(),
+                                          OrderDate = o.OrderDate,
+                                          OrderNo = o.OrderNo,
+                                          Quantity = o.Quantity,
+                                          TotalAmount = o.TotalAmount,
+                                          Status = o.Status,
+                                          Depot = d,
+                                          Product = p,
+                                          User = u
+                                      })
+                                          on oc.OrderId equals op.Id
+                          join c in _context.Credits on oc.CreditId equals c.Id
+                          
                           orderby c.CreatedOn
                           select new OrderCredit
                           {

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Nepal.Abstraction.Service.Business;
 using Nepal.Abstraction.Service.Data;
+using Nepal.Business.Service.Email;
 using Nepal.Data.Service;
 using Nepal.EF.DB.DataObject;
 using System;
@@ -29,6 +30,8 @@ namespace Nepal.Business.Service
                 services.AddScoped<CreditRepository>();
                 services.AddScoped<OrderCreditRepository>();
                 services.AddScoped<ProgramRepository>();
+                services.AddScoped<SalesPriceRepository>();
+                services.AddScoped<MailTemplateRepository>();
 
             }
 
@@ -39,6 +42,8 @@ namespace Nepal.Business.Service
             services.AddTransient<IProgramService, ProgramService>();
             services.AddTransient<ICreditService, CreditService>();
             services.AddTransient<IBlobStoreService, BlobStoreService>();
+            services.AddTransient<IKYCClientService, KYCClientService>();
+            services.AddTransient<IEmailService, EmailService>();
             
         }
     }

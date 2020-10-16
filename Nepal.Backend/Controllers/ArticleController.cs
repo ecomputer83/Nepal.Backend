@@ -90,7 +90,7 @@ namespace Nepal.Backend.Controllers
         [Authorize(Roles = "Administrator")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(IEnumerable<string>), 400)]
-        public async Task<IActionResult> Put([FromBody] ArticleModel model, int id)
+        public async Task<IActionResult> Put([FromForm] ArticleModel model, int id)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.Values.Select(x => x.Errors.FirstOrDefault().ErrorMessage));

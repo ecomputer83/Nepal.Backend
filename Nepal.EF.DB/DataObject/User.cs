@@ -7,6 +7,7 @@ namespace Nepal.EF.DB.DataObject
 {
     public class User : IdentityUser
     {
+        public string UserNo { get; set; }
         public string IPMANCode { get; set; }
         public string BusinessName { get; set; }
         public string RCNumber { get; set; }

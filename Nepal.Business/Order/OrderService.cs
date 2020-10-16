@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Nepal.Abstraction.Model;
 using Nepal.Abstraction.Service.Business;
+using Nepal.Abstraction.ServiceModel;
 using Nepal.Data.Service;
 using Nepal.EF.DB.DataObject;
 using System;
@@ -17,24 +19,46 @@ namespace Nepal.Business.Service
         private ProgramRepository _programRepository;
         private OrderCreditRepository _orderCreditRepository;
         private CreditRepository _creditRepository;
+        private ProductRepository _productRepository;
+        private DepotRepository _depotRepository;
+        private UserManager<User> _userManager;
+        private IKYCClientService _kYCClientService;
         private readonly IMapper _mapper;
         public OrderService(OrderRepository orderRepository, ProgramRepository programRepository,
-            CreditRepository creditRepository, OrderCreditRepository orderCreditRepository, IMapper mapper)
+            CreditRepository creditRepository, OrderCreditRepository orderCreditRepository,
+            ProductRepository productRepository, DepotRepository depotRepository, 
+            UserManager<User> userManager, IKYCClientService kYCClientService, IMapper mapper)
         {
             _orderRepository = orderRepository;
             _programRepository = programRepository;
             _creditRepository = creditRepository;
             _orderCreditRepository = orderCreditRepository;
+            _productRepository = productRepository;
+            _depotRepository = depotRepository;
+            _kYCClientService = kYCClientService;
+            _userManager = userManager;
             _mapper = mapper;
         }
         public async Task<int> AddOrder(OrderModel model, string UserId)
         {
             var order = _mapper.Map<Order>(model);
-            order.OrderNo = "P" + GenerateRandomNo();
+            //order.OrderNo = "P" + GenerateRandomNo();
             order.UserId = UserId;
             order.OrderDate = DateTime.Now;
             order.CreatedBy = "System";
             order.CreatedOn = DateTime.Now;
+            var user = await _userManager.FindByIdAsync(UserId);
+            var prod = await _productRepository.Get(order.ProductId);
+            var depot = await _depotRepository.Get(order.DepotId);
+            var navOrder = _mapper.Map<NavSaleRequest>(order);
+            navOrder.DocumentType = "Order";
+            navOrder.ProductType = prod.Abbrev;
+            navOrder.LocationCode = depot.Code;
+            navOrder.SellToCustomerName = user.BusinessName;
+            navOrder.SellToCustomerNo = user.UserNo;
+            navOrder.DocumentDate = navOrder.DueDate = navOrder.OrderDate = navOrder.PostingDate  = order.OrderDate.ToString("yyyy-MM-dd");
+            var _order = await _kYCClientService.PostOrder(navOrder);
+            order.OrderNo = _order.No.ToString();
             return await _orderRepository.AddOrder(order);
         }
 
@@ -73,9 +97,21 @@ namespace Nepal.Business.Service
             return _mapper.Map<List<OrderViewModel>>(orders);
         }
 
+        public async Task<List<OrderCreditModel>> GetCreditedOrders(string UserId)
+        {
+            var orders = await _creditRepository.GetCredits(UserId);
+            return _mapper.Map<List<OrderCreditModel>>(orders);
+        }
+
         public async Task<List<OrderViewModel>> GetOrders()
         {
             var orders = await _orderRepository.GetOrders();
+            return _mapper.Map<List<OrderViewModel>>(orders);
+        }
+
+        public async Task<List<OrderViewModel>> GetPendingOrders()
+        {
+            var orders = await _orderRepository.GetPendingOrders();
             return _mapper.Map<List<OrderViewModel>>(orders);
         }
 

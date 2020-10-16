@@ -41,12 +41,45 @@ namespace Nepal.Backend.Controllers
         }
 
         [HttpGet]
+        [Route("Credited")]
+        public async Task<IActionResult> Credited()
+        {
+            try
+            {
+                var userId = HttpContext.User.Identity.Name;
+                var orders = await _orderService.GetCreditedOrders(userId);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
+
+        [HttpGet]
         [Route("ActiveOrders")]
         public async Task<IActionResult> GetAll()
         {
             try
             {
                 var orders = await _orderService.GetOrders();
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
+
+        [HttpGet]
+        [Route("PendingOrders")]
+        public async Task<IActionResult> GetPending()
+        {
+            try
+            {
+                var orders = await _orderService.GetPendingOrders();
                 return Ok(orders);
             }
             catch (Exception ex)

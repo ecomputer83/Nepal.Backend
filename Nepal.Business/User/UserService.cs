@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Nepal.Abstraction.Model;
 using Nepal.Abstraction.Service.Business;
+using Nepal.Abstraction.ServiceModel;
 using Nepal.EF.DB.DataObject;
 using System;
 using System.Collections.Generic;
@@ -19,13 +20,14 @@ namespace Nepal.Business.Service
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
-
-        public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper, IConfiguration configuration)
+        private IKYCClientService _kycClientService;
+        public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper, IConfiguration configuration, IKYCClientService kYCClientService)
         {
             _userManager = userManager;
             _mapper = mapper;
             _configuration = configuration;
             _roleManager = roleManager;
+            _kycClientService = kYCClientService;
         }
 
         public async Task AddCreditLimit(string Id, long limit)
@@ -35,6 +37,10 @@ namespace Nepal.Business.Service
             _user.CreditBalance = limit.ToString();
 
             var result = await _userManager.UpdateAsync(_user);
+            var User = await _kycClientService.GetCustomer(_user.UserNo);
+            var NavUser = _mapper.Map<ClientRequest>(User);
+            NavUser.CreditLimitLcy = limit;
+            await _kycClientService.PutCustomer(User.No, NavUser);
             if (!result.Succeeded)
             {
                 throw new Exception(result.Errors.Select(c => c.Description).Aggregate((a, b) => a + ", " + b));
@@ -66,22 +72,43 @@ namespace Nepal.Business.Service
             bool res = false;
             var user = _mapper.Map<User>(model);
             user.UserName = model.Email;
-            var result = await _userManager.CreateAsync(user, model.Password).ConfigureAwait(false);
-            if (result.Succeeded)
+            var NavUser = _mapper.Map<ClientRequest>(user);
+            var exist = await _kycClientService.GetClient(model.Email);
+            if (exist.Value.Length > 0) {
+                user.UserNo = exist.Value[0].No;
+            }
+            else
             {
-                if (roleNames != null)
+                var resp = await _kycClientService.PostCustomer(NavUser);
+                if (resp != null)
                 {
-                    var resultx = await _userManager.AddToRolesAsync(user, roleNames);
-                    res = resultx.Succeeded;
+                    user.UserNo = resp.No;
+                }
+            }
+
+            if (user.UserNo != null) { 
+                var result = await _userManager.CreateAsync(user, model.Password).ConfigureAwait(false);
+                if (result.Succeeded)
+                {
+                    if (roleNames != null)
+                    {
+                        var resultx = await _userManager.AddToRolesAsync(user, roleNames);
+                        res = resultx.Succeeded;
+                    }
+                    else
+                    {
+
+                        res = result.Succeeded;
+                    }
                 }
                 else
                 {
-                    res = result.Succeeded;
+                    throw new Exception(result.Errors.Select(c => c.Description).Aggregate((a, b) => a + ", " + b));
                 }
             }
             else
             {
-                throw new Exception(result.Errors.Select(c => c.Description).Aggregate((a, b) => a + ", " + b));
+                throw new Exception("Unable to create account on Nav");
             }
             return res;
         }
@@ -189,6 +216,16 @@ namespace Nepal.Business.Service
             _user.RCNumber = user.RCNumber;
 
             var result = await _userManager.UpdateAsync(_user);
+            var Clients = await _kycClientService.GetClient(_user.Email);
+            var User = Clients.Value[0];
+            var NavUser = _mapper.Map<ClientRequest>(User);
+            NavUser.Name = user.BusinessName;
+            NavUser.Address = user.Address;
+            NavUser.ContactName = user.ContactName;
+            NavUser.CreditLimitLcy = long.Parse(user.CreditLimit);
+            NavUser.RcNumber = user.RCNumber;
+            NavUser.PhoneNo = user.PhoneNumber;
+            await _kycClientService.PutCustomer(User.No, NavUser);
             if (!result.Succeeded)
             {
                 throw new Exception(result.Errors.Select(c => c.Description).Aggregate((a, b) => a + ", " + b));
@@ -200,6 +237,13 @@ namespace Nepal.Business.Service
         {
             var user = await _userManager.FindByIdAsync(userId);
             await _userManager.DeleteAsync(user);
+
+            var Clients = await _kycClientService.GetClient(user.Email);
+            var User = Clients.Value[0];
+            var NavUser = _mapper.Map<ClientRequest>(User);
+            //NavUser. = "Blocked";
+            var existUser = _mapper.Map<ClientRequest>(NavUser);
+            await _kycClientService.PutCustomer(User.No, NavUser);
         }
     }
 }

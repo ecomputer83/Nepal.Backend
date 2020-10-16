@@ -11,6 +11,7 @@ namespace Nepal.Abstraction.Model
         public string Name { get; set; }
         public int Type { get; set; }
         public string Reference { get; set; }
+        public DateTime CreditDate { get; set; }
     }
 
     public class CreditViewModel
@@ -21,5 +22,6 @@ namespace Nepal.Abstraction.Model
         public string Name { get; set; }
         public string CreditType { get { return (Type == 1) ? "Card Payment" : (Type == 2) ? "IPMAN Credit" : (Type == 3) ? "Bank Deposit" : "Credit"; } }
         public string Reference { get; set; }
+        public DateTime CreditDate { get; set; }
     }
 }

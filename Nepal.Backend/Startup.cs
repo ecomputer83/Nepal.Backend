@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -45,7 +46,7 @@ namespace Nepal.Backend
 
             services.AddDbContext<CoreContext>(options =>
                 options.UseSqlServer(
-                    connection, b => b.MigrationsAssembly("Nepal.Backend")), ServiceLifetime.Transient);
+                    connection, b => { b.MigrationsAssembly("Nepal.Backend"); b.EnableRetryOnFailure(); }), ServiceLifetime.Transient);
 
             services.AddIdentity<User, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
                             .AddEntityFrameworkStores<CoreContext>().AddDefaultTokenProviders();
@@ -132,6 +133,7 @@ namespace Nepal.Backend
             var config = new MapperConfiguration(c => c.AddProfile(new ApplicationProfile()));
             var mapper = config.CreateMapper();
             services.AddSingleton(mapper);
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -167,6 +169,8 @@ namespace Nepal.Backend
             {
                 scope.ServiceProvider.GetRequiredService<CoreContext>().Database.Migrate();
             }
+
+            
         }
     }
 }

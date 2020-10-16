@@ -52,6 +52,24 @@ namespace Nepal.Data.Service
             return order;
         }
 
+        public async Task<List<Order>> GetPendingOrders()
+        {
+            var creditedOrderIds = await _context.OrderCredits.Select(c => c.OrderId).ToListAsync();
+
+            if (creditedOrderIds.Count > 0)
+            {
+                var order = await _context.Orders
+                    .Include("Product")
+                    .Include("Depot")
+                    //.Include("Programs")
+                    .Where(c => c.Status == 0 && !creditedOrderIds.Contains(c.Id) )
+                    .OrderByDescending(o => o.OrderDate).ToListAsync();
+
+                return order;
+            }
+            return new List<Order>();
+        }
+
         public async Task<int> AddOrder(Order order)
         {
             
