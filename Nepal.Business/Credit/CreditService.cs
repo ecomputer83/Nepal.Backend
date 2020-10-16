@@ -20,15 +20,18 @@ namespace Nepal.Business.Service
         private UserManager<User> _userService;
         private IKYCClientService _kYCClientService;
         private readonly IMapper _mapper;
+        private readonly IEmailService _emailService;
+
         public CreditService(CreditRepository creditRepository, 
             OrderCreditRepository orderCreditRepository, UserManager<User> userService,
-            IKYCClientService kYCClientService, IMapper mapper)
+            IKYCClientService kYCClientService, IMapper mapper, IEmailService emailService)
         {
             _creditRepository = creditRepository;
             _orderCreditRepository = orderCreditRepository;
             _kYCClientService = kYCClientService;
             _userService = userService;
             _mapper = mapper;
+            _emailService = emailService;
         }
         public async Task<int> Create(CreditModel model)
         {
@@ -54,11 +57,11 @@ namespace Nepal.Business.Service
                 var creditBalance = long.Parse(user.CreditBalance) - model.TotalAmount;
                 user.CreditBalance = creditBalance.ToString();
                 await _userService.UpdateAsync(user);
-                //TODO EmailService
+                await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Request_Credit", user.Email);
             }
             else
             {
-                //TODO EmailService
+                await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Bank_Notification", user.Email);
             }
             return id;
         }
@@ -111,6 +114,18 @@ namespace Nepal.Business.Service
                 //order.PaymentApprovalStatus = "Approved";
 
                 await _kYCClientService.PutOrder(navOrder.Value[0].No, order);
+                if(oCredit.Credit.Type == 3)
+                {
+                    await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Bank_Approval", user.Email);
+                }
+                else if(oCredit.Credit.Type == 2)
+                {
+                    await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Credit_Approve", user.Email);
+                }
+                else
+                {
+                    await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Card_Approve", user.Email);
+                }
             }
         }
 
@@ -127,7 +142,13 @@ namespace Nepal.Business.Service
                 var creditBalance = long.Parse(user.CreditBalance) + oCredit.Credit.TotalAmount;
                 user.CreditBalance = creditBalance.ToString();
                 await _userService.UpdateAsync(user);
+                await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Credit_Approve", user.Email);
             }
+            else if (oCredit.Credit.Type == 3)
+            {
+                await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Bank_Approval", user.Email);
+            }
+
             if (navOrder.Value.Length > 0)
             {
                 var order = _mapper.Map<NavSaleRequest>(navOrder.Value[0]);

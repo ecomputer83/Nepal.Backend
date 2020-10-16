@@ -22,12 +22,13 @@ namespace Nepal.Business.Service
         private ProductRepository _productRepository;
         private DepotRepository _depotRepository;
         private UserManager<User> _userManager;
+        private readonly IEmailService _emailService;
         private IKYCClientService _kYCClientService;
         private readonly IMapper _mapper;
         public OrderService(OrderRepository orderRepository, ProgramRepository programRepository,
             CreditRepository creditRepository, OrderCreditRepository orderCreditRepository,
             ProductRepository productRepository, DepotRepository depotRepository, 
-            UserManager<User> userManager, IKYCClientService kYCClientService, IMapper mapper)
+            UserManager<User> userManager, IKYCClientService kYCClientService, IMapper mapper, IEmailService emailService)
         {
             _orderRepository = orderRepository;
             _programRepository = programRepository;
@@ -37,7 +38,7 @@ namespace Nepal.Business.Service
             _depotRepository = depotRepository;
             _kYCClientService = kYCClientService;
             _userManager = userManager;
-            _mapper = mapper;
+            _emailService = emailService;
         }
         public async Task<int> AddOrder(OrderModel model, string UserId)
         {
@@ -59,7 +60,9 @@ namespace Nepal.Business.Service
             navOrder.DocumentDate = navOrder.DueDate = navOrder.OrderDate = navOrder.PostingDate  = order.OrderDate.ToString("yyyy-MM-dd");
             var _order = await _kYCClientService.PostOrder(navOrder);
             order.OrderNo = _order.No.ToString();
-            return await _orderRepository.AddOrder(order);
+            var id = await _orderRepository.AddOrder(order);
+            await _emailService.SendOrderSummaryAsync(_mapper.Map<OrderViewModel>(order), user.Email);
+            return id;
         }
 
         public async Task DeleteOrder(int Id)
