@@ -48,7 +48,10 @@ namespace Nepal.Backend
                 options.UseSqlServer(
                     connection, b => { b.MigrationsAssembly("Nepal.Backend"); b.EnableRetryOnFailure(); }), ServiceLifetime.Transient);
 
-            services.AddIdentity<User, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
+            services.AddIdentity<User, IdentityRole>(options => {
+                options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultPhoneProvider;
+                options.SignIn.RequireConfirmedAccount = false;
+                })
                             .AddEntityFrameworkStores<CoreContext>().AddDefaultTokenProviders();
             services.Configure<IdentityOptions>(options =>
             {
