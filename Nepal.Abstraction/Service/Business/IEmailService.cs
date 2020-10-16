@@ -12,8 +12,8 @@ namespace Nepal.Abstraction.Service.Business
         Task SendOrderSummaryAsync(OrderViewModel oc, string To);
         Task SendAsync(string EmailDisplayName, string Subject, string Body, string From, string To);
 
-        Task SendEmailConfirmationAsync(string Email, string CallbackUrl);
+        Task SendEmailConfirmationAsync(string Email, string Code);
 
-        Task SendPasswordResetAsync(string Email, string CallbackUrl);
+        Task SendPasswordResetAsync(string Email, string Code);
     }
 }

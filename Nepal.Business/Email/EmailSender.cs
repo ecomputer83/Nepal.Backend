@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Nepal.Abstraction;
 using Nepal.Abstraction.Model;
 using Nepal.Abstraction.Service.Business;
@@ -15,10 +16,12 @@ namespace Nepal.Business.Service.Email
     public class EmailService : IEmailService
     {
         private readonly Mailer _email;
+        private readonly IConfiguration _configuration;
         private readonly MailTemplateRepository _mailTemplateRepository;
-        public EmailService(IOptions<Mailer> email, MailTemplateRepository mailTemplateRepository)
+        public EmailService(IOptions<Mailer> email, IConfiguration configuration, MailTemplateRepository mailTemplateRepository)
         {
-            _email = email.Value;
+            _email = configuration.GetSection("Email").Get<Mailer>(); 
+            _configuration = configuration;
             _mailTemplateRepository = mailTemplateRepository;
         }
 
@@ -35,9 +38,9 @@ namespace Nepal.Business.Service.Email
                     client.UseDefaultCredentials = false;
                     client.Credentials = new NetworkCredential(_email.UserName, _email.Password);
                 }
-
-                PrepareMailMessage(_email.DisplayName, template.TemplateSubject, body, _email.From, To, mailMessage);
-
+                var cc = _email.CC;
+                PrepareMailMessage(_email.DisplayName, template.TemplateSubject, body, _email.From, To, mailMessage, cc);
+                client.EnableSsl = true;
                 await client.SendMailAsync(mailMessage);
             }
         }
@@ -56,7 +59,7 @@ namespace Nepal.Business.Service.Email
                 }
 
                 PrepareMailMessage(_email.DisplayName, template.TemplateSubject, body, _email.From, To, mailMessage);
-
+                client.EnableSsl = true;
                 await client.SendMailAsync(mailMessage);
             }
         }
@@ -72,7 +75,7 @@ namespace Nepal.Business.Service.Email
                 }
 
                 PrepareMailMessage(EmailDisplayName, Subject, Body, From, To, mailMessage);
-
+                client.EnableSsl = true;
                 await client.SendMailAsync(mailMessage);
             }
         }
@@ -89,7 +92,7 @@ namespace Nepal.Business.Service.Email
                 }
 
                 PrepareMailMessage(_email.DisplayName, "Confirm your email", $"Here is the confirmation code <b>{Code}</b>", _email.From, EmailAddress, mailMessage);
-
+                client.EnableSsl = true;
                 await client.SendMailAsync(mailMessage);
             }
         }
@@ -106,15 +109,18 @@ namespace Nepal.Business.Service.Email
                 }
 
                 PrepareMailMessage(_email.DisplayName, "Reset your password", $"Please reset your password with code <b>{Code}</b>", _email.From, EmailAddress, mailMessage);
-
+                client.EnableSsl = true;
                 await client.SendMailAsync(mailMessage);
             }
         }
 
-        private void PrepareMailMessage(string EmailDisplayName, string Subject, string Body, string From, string To, MailMessage mailMessage)
+        private void PrepareMailMessage(string EmailDisplayName, string Subject, string Body, string From, string To, MailMessage mailMessage, string cc = null)
         {
             mailMessage.From = new MailAddress(From, EmailDisplayName);
             mailMessage.To.Add(To);
+            if(!string.IsNullOrEmpty(cc))
+            mailMessage.Bcc.Add(cc);
+
             mailMessage.Body = Body;
             mailMessage.IsBodyHtml = true;
             mailMessage.Subject = Subject;

@@ -18,13 +18,15 @@ namespace Nepal.Business.Service
     {
         public readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private IKYCClientService _kycClientService;
-        public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper, IConfiguration configuration, IKYCClientService kYCClientService)
+        public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IEmailService emailService, IMapper mapper, IConfiguration configuration, IKYCClientService kYCClientService)
         {
             _userManager = userManager;
             _mapper = mapper;
+            _emailService = emailService;
             _configuration = configuration;
             _roleManager = roleManager;
             _kycClientService = kYCClientService;
@@ -134,10 +136,11 @@ namespace Nepal.Business.Service
         public async Task ForgotPassword(EmailModel model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email).ConfigureAwait(false);
-            if (user == null || !(await _userManager.IsEmailConfirmedAsync(user).ConfigureAwait(false)))
-                throw new Exception("Please verify your email address.");
+            //if (user == null || !(await _userManager.IsEmailConfirmedAsync(user).ConfigureAwait(false)))
+                //throw new Exception("Please verify your email address.");
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(user).ConfigureAwait(false);
+            await _emailService.SendPasswordResetAsync(model.Email, code);
         }
 
         public async Task<IList<Claim>> GetClaimsAsync(UserModel user)

@@ -47,12 +47,18 @@ namespace Nepal.Business.Service
                 order.AmountPaid = Convert.ToInt64(oCredit.Credit.TotalAmount);
                 await _kYCClientService.PutOrder(navOrder.Value[0].No, order);
             }
-            if(model.Type == 2)
+            var user = await _userService.FindByIdAsync(oCredit.Order.UserId);
+            if (model.Type == 2)
             {
-                var user = await _userService.FindByIdAsync(oCredit.Order.UserId);
+                
                 var creditBalance = long.Parse(user.CreditBalance) - model.TotalAmount;
                 user.CreditBalance = creditBalance.ToString();
                 await _userService.UpdateAsync(user);
+                //TODO EmailService
+            }
+            else
+            {
+                //TODO EmailService
             }
             return id;
         }
@@ -98,7 +104,8 @@ namespace Nepal.Business.Service
 
             var oCredit = await _orderCreditRepository.GetByCreditId(CreditId);
             var navOrder = await _kYCClientService.GetSaleDetail(oCredit.Order.OrderNo);
-            if(navOrder.Value.Length > 0)
+            var user = await _userService.FindByIdAsync(oCredit.Order.UserId);
+            if (navOrder.Value.Length > 0)
             {
                 var order = _mapper.Map<NavSaleRequest>(navOrder.Value[0]);
                 //order.PaymentApprovalStatus = "Approved";
@@ -113,9 +120,10 @@ namespace Nepal.Business.Service
 
             var oCredit = await _orderCreditRepository.GetByCreditId(CreditId);
             var navOrder = await _kYCClientService.GetSaleDetail(oCredit.Order.OrderNo);
+            var user = await _userService.FindByIdAsync(oCredit.Order.UserId);
             if (oCredit.Credit.Type == 2)
             {
-                var user = await _userService.FindByIdAsync(oCredit.Order.UserId);
+                
                 var creditBalance = long.Parse(user.CreditBalance) + oCredit.Credit.TotalAmount;
                 user.CreditBalance = creditBalance.ToString();
                 await _userService.UpdateAsync(user);
