@@ -19,14 +19,16 @@ namespace Nepal.Business.Service
         public readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEmailService _emailService;
+        private readonly IOrderService _orderService;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private IKYCClientService _kycClientService;
-        public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IEmailService emailService, IMapper mapper, IConfiguration configuration, IKYCClientService kYCClientService)
+        public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IOrderService orderService, IEmailService emailService, IMapper mapper, IConfiguration configuration, IKYCClientService kYCClientService)
         {
             _userManager = userManager;
             _mapper = mapper;
             _emailService = emailService;
+            _orderService = orderService;
             _configuration = configuration;
             _roleManager = roleManager;
             _kycClientService = kYCClientService;
@@ -74,21 +76,9 @@ namespace Nepal.Business.Service
             bool res = false;
             var user = _mapper.Map<User>(model);
             user.UserName = model.Email;
-            var NavUser = _mapper.Map<ClientRequest>(user);
-            var exist = await _kycClientService.GetClient(model.Email);
-            if (exist.Value.Length > 0) {
-                user.UserNo = exist.Value[0].No;
-            }
-            else
-            {
-                var resp = await _kycClientService.PostCustomer(NavUser);
-                if (resp != null)
-                {
-                    user.UserNo = resp.No;
-                }
-            }
+            
 
-            if (user.UserNo != null) { 
+            //if (user.UserNo != null) { 
                 var result = await _userManager.CreateAsync(user, model.Password).ConfigureAwait(false);
                 if (result.Succeeded)
                 {
@@ -107,11 +97,11 @@ namespace Nepal.Business.Service
                 {
                     throw new Exception(result.Errors.Select(c => c.Description).Aggregate((a, b) => a + ", " + b));
                 }
-            }
-            else
-            {
-                throw new Exception("Unable to create account on Nav");
-            }
+            //}
+            //else
+            //{
+            //    throw new Exception("Unable to create account on Nav");
+            //}
             return res;
         }
 
@@ -119,6 +109,30 @@ namespace Nepal.Business.Service
         {
             var _user = await _userManager.FindByEmailAsync(email);
             return _mapper.Map<UserModel>(_user);
+        }
+
+        public async Task Approve(string UserId)
+        {
+            var user = await _userManager.FindByIdAsync(UserId);
+            var NavUser = _mapper.Map<ClientRequest>(user);
+            var exist = await _kycClientService.GetClient(user.Email);
+            if (exist.Value.Length > 0)
+            {
+                user.UserNo = exist.Value[0].No;
+            }
+            else
+            {
+                var resp = await _kycClientService.PostCustomer(NavUser);
+                if (resp != null)
+                {
+                    user.UserNo = resp.No;
+                }
+            }
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                await _orderService.PostOrder(user.Id);
+            }
         }
 
         public async Task<UserModel> FindByIdAsync(string id)

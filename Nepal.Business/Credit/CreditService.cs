@@ -142,11 +142,11 @@ namespace Nepal.Business.Service
                 var creditBalance = long.Parse(user.CreditBalance) + oCredit.Credit.TotalAmount;
                 user.CreditBalance = creditBalance.ToString();
                 await _userService.UpdateAsync(user);
-                await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Credit_Approve", user.Email);
+                await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Credit_Reject", user.Email);
             }
             else if (oCredit.Credit.Type == 3)
             {
-                await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Bank_Approval", user.Email);
+                await _emailService.SendOrderConfirmationAsync(_mapper.Map<OrderCreditModel>(oCredit), "Order_Bank_Reject", user.Email);
             }
 
             if (navOrder.Value.Length > 0)

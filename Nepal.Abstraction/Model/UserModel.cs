@@ -15,6 +15,7 @@ namespace Nepal.Abstraction.Model
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
         public string UserName { get; set; }
+        public string UserNo { get; set; }
         public bool isIPMAN { get; set; }
         public string CreditLimit { get; set; }
         public bool TwoFactorEnabled { get; set; }

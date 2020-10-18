@@ -16,6 +16,7 @@ namespace Nepal.Abstraction.Service.Business
         Task<List<OrderCreditModel>> GetCreditedOrders(string UserId);
         Task UpdateOrder(OrderModel model, int Id);
         Task CompleteOrder(int orderId);
+        Task PostOrder(string UserId);
         Task DeleteOrder(int Id);
     }
 }

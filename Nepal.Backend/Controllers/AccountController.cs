@@ -159,6 +159,26 @@ namespace Nepal.Backend.Controllers
 
         [Authorize(Roles = "Administrator")]
         [HttpGet]
+        [Route("approve/{id}")]
+        public async Task<IActionResult> Approve(string id)
+        {
+            try
+            {
+                var userId = HttpContext.User.Identity.Name;
+
+                await _userService.Approve(id);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return CreateApiException(ex);
+            }
+        }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpGet]
         [Route("roles")]
         public async Task<IActionResult> GetRoles()
         {

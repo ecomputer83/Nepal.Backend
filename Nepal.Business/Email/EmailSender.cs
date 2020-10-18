@@ -6,6 +6,7 @@ using Nepal.Abstraction.Service.Business;
 using Nepal.Data.Service;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Net.Mail;
 using System.Text;
@@ -29,7 +30,7 @@ namespace Nepal.Business.Service.Email
         {
             var template = await _mailTemplateRepository.GetByCode(Type);
             var body = template.TemplateBody;
-            ConvertOrderCreditToBodyMessage(body, oc);
+            body = ConvertOrderCreditToBodyMessage(body, oc);
             using (var client = new SmtpClient(_email.Server, _email.Port))
             {
                 using (var mailMessage = new MailMessage())
@@ -50,7 +51,7 @@ namespace Nepal.Business.Service.Email
         {
             var template = await _mailTemplateRepository.GetByCode("Order_Summary");
             var body = template.TemplateBody;
-            ConvertOrderToBodyMessage(body, oc);
+            body = ConvertOrderToBodyMessage(body, oc);
             using (var client = new SmtpClient(_email.Server, _email.Port))
             {
                 using (var mailMessage = new MailMessage())
@@ -60,8 +61,8 @@ namespace Nepal.Business.Service.Email
                         client.UseDefaultCredentials = false;
                         client.Credentials = new NetworkCredential(_email.UserName, _email.Password);
                     }
-
-                    PrepareMailMessage(_email.DisplayName, template.TemplateSubject, body, _email.From, To, mailMessage);
+                    var cc = _email.CC;
+                    PrepareMailMessage(_email.DisplayName, template.TemplateSubject, body, _email.From, To, mailMessage, cc);
                     client.EnableSsl = true;
                     await client.SendMailAsync(mailMessage);
                 }
@@ -132,27 +133,34 @@ namespace Nepal.Business.Service.Email
             mailMessage.Subject = Subject;
         }
 
-        private void ConvertOrderCreditToBodyMessage(string body, OrderCreditModel model)
+        private string ConvertOrderCreditToBodyMessage(string xc, OrderCreditModel model)
         {
-            body.Replace("{PRODUCT}", model.Order.ProductName);
-            body.Replace("{DEPOT}", model.Order.DepotName);
-            body.Replace("{OrderNo}", model.Order.OrderNo);
-            body.Replace("{Quantity}", model.Order.Quantity.ToString());
-            body.Replace("{TotalAmount}", model.Order.TotalAmount.ToString());
-            body.Replace("{Price}", (model.Order.TotalAmount / model.Order.Quantity).ToString());
-            body.Replace("{Reference}", model.Credit.Reference.ToString());
-            body.Replace("{Amount}", model.Credit.TotalAmount.ToString());
-            body.Replace("{Date}", model.Credit.CreditDate.ToShortDateString());
+            var body = xc;
+            body = body.Replace("{PRODUCT}", model.Order.ProductName);
+            body = body.Replace("{DEPOT}", model.Order.DepotName);
+            body = body.Replace("{OrderNo}", model.Order.OrderNo);
+            body = body.Replace("{Quantity}", model.Order.Quantity.ToString("N", CultureInfo.CurrentCulture));
+            body = body.Replace("{TotalAmount}", "₦ " + model.Order.TotalAmount.ToString("N", CultureInfo.CurrentCulture));
+            body = body.Replace("{Price}", "₦ " + (model.Order.TotalAmount / model.Order.Quantity).ToString("N", CultureInfo.CurrentCulture));
+            body = body.Replace("{Account}", (model.Credit.Type == 3) ? "Bank Deposit" : (model.Credit.Type == 2) ? "IPMAN Credit" : "Card Payment");
+            body = body.Replace("{Reference}", model.Credit.Reference.ToString());
+            body = body.Replace("{Amount}", "₦ " + model.Credit.TotalAmount.ToString("N", CultureInfo.CurrentCulture));
+            body = body.Replace("{Date}", model.Credit.CreditDate.ToShortDateString());
+
+            return body;
         }
 
-        private void ConvertOrderToBodyMessage(string body, OrderViewModel model)
+        private string ConvertOrderToBodyMessage(string xc, OrderViewModel model)
         {
-            body.Replace("{PRODUCT}", model.ProductName);
-            body.Replace("{DEPOT}", model.DepotName);
-            body.Replace("{OrderNo}", model.OrderNo);
-            body.Replace("{Quantity}", model.Quantity.ToString());
-            body.Replace("{TotalAmount}", model.TotalAmount.ToString());
-            body.Replace("{Price}", (model.TotalAmount / model.Quantity).ToString());
+            var body = xc;
+            body = body.Replace("{PRODUCT}", model.ProductName);
+            body = body.Replace("{DEPOT}", model.DepotName);
+            body = body.Replace("{OrderNo}", model.OrderNo);
+            body = body.Replace("{Quantity}", model.Quantity.ToString("N", CultureInfo.CurrentCulture));
+            body = body.Replace("{TotalAmount}", "₦ " + model.TotalAmount.ToString("N", CultureInfo.CurrentCulture));
+            body = body.Replace("{Price}", "₦ " + (model.TotalAmount / model.Quantity).ToString("N", CultureInfo.CurrentCulture));
+
+            return body;
         }
     }
 }

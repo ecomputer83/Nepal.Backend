@@ -28,6 +28,7 @@ namespace Nepal.Abstraction.Service.Business
         Task<IEnumerable<UserModel>> GetAdminUsers(string userId);
         Task AddRole(string roleName);
         Task AddCreditLimit(string Id, long limit);
+        Task Approve(string UserId);
         Task RemoveUser(string userId);
     }
 }

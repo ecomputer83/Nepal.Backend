@@ -39,6 +39,7 @@ namespace Nepal.Business.Service
             _kYCClientService = kYCClientService;
             _userManager = userManager;
             _emailService = emailService;
+            _mapper = mapper;
         }
         public async Task<int> AddOrder(OrderModel model, string UserId)
         {
@@ -51,18 +52,43 @@ namespace Nepal.Business.Service
             var user = await _userManager.FindByIdAsync(UserId);
             var prod = await _productRepository.Get(order.ProductId);
             var depot = await _depotRepository.Get(order.DepotId);
-            var navOrder = _mapper.Map<NavSaleRequest>(order);
-            navOrder.DocumentType = "Order";
-            navOrder.ProductType = prod.Abbrev;
-            navOrder.LocationCode = depot.Code;
-            navOrder.SellToCustomerName = user.BusinessName;
-            navOrder.SellToCustomerNo = user.UserNo;
-            navOrder.DocumentDate = navOrder.DueDate = navOrder.OrderDate = navOrder.PostingDate  = order.OrderDate.ToString("yyyy-MM-dd");
-            var _order = await _kYCClientService.PostOrder(navOrder);
-            order.OrderNo = _order.No.ToString();
+            //var navOrder = _mapper.Map<NavSaleRequest>(order);
+            //navOrder.DocumentType = "Order";
+            //navOrder.ProductType = prod.Abbrev;
+            //navOrder.LocationCode = depot.Code;
+            //navOrder.SellToCustomerName = user.BusinessName;
+            //navOrder.SellToCustomerNo = user.UserNo;
+            //navOrder.DocumentDate = navOrder.DueDate = navOrder.OrderDate = navOrder.PostingDate  = order.OrderDate.ToString("yyyy-MM-dd");
+            //var _order = await _kYCClientService.PostOrder(navOrder);
+            //order.OrderNo = _order.No.ToString();
             var id = await _orderRepository.AddOrder(order);
+            order.Product = prod;
+            order.Depot = depot;
             await _emailService.SendOrderSummaryAsync(_mapper.Map<OrderViewModel>(order), user.Email);
             return id;
+        }
+
+        public async Task PostOrder(string UserId)
+        {
+            var orders = await _orderRepository.GetOrders(UserId);
+            if(orders.Count > 0)
+            {
+                var order = orders[0];
+                var user = await _userManager.FindByIdAsync(UserId);
+                var prod = await _productRepository.Get(order.ProductId);
+                var depot = await _depotRepository.Get(order.DepotId);
+                var navOrder = _mapper.Map<NavSaleRequest>(order);
+                navOrder.DocumentType = "Order";
+                navOrder.ProductType = prod.Abbrev;
+                navOrder.LocationCode = depot.Code;
+                navOrder.SellToCustomerName = user.BusinessName;
+                navOrder.SellToCustomerNo = user.UserNo;
+                navOrder.DocumentDate = navOrder.DueDate = navOrder.OrderDate = navOrder.PostingDate = order.OrderDate.ToString("yyyy-MM-dd");
+                var _order = await _kYCClientService.PostOrder(navOrder);
+                order.OrderNo = _order.No.ToString();
+
+                await _orderRepository.Update(order);
+            }
         }
 
         public async Task DeleteOrder(int Id)
